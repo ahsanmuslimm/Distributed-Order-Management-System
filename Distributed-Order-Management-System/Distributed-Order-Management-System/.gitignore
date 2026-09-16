@@ -1,0 +1,44 @@
+## Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+## IDE
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.user
+*.userosscache
+*.suo
+.idea/
+
+## Test results
+TestResults/
+coverage.cobertura.xml
+coverage.opencover.xml
+*.trx
+
+## Dependencies
+packages/
+node_modules/
+.nuget/
+
+## Environment
+.env
+.env.local
+*.log
+logs/
+
+## Docker
+docker-compose.override.yml
+
+## Rider
+.idea/
+*.sln.iml
