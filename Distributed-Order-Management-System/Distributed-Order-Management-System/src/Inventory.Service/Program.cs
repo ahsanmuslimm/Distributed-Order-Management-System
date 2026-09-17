@@ -8,6 +8,7 @@ using Inventory.Service.Handlers;
 using Inventory.Service.Infrastructure;
 using Inventory.Service.Logging;
 using Inventory.Service.Middleware;
+using Inventory.Service.Services;
 
 // ========================================================================
 // PHASE 2: INVENTORY SERVICE
@@ -76,6 +77,9 @@ try
     // Command handlers
     builder.Services.AddScoped<ReserveInventoryHandler>();
     builder.Services.AddScoped<ReleaseInventoryHandler>();
+
+    // Background services
+    builder.Services.AddHostedService<CacheConsistencyJob>();
 
     // API
     builder.Services.AddEndpointsApiExplorer();
