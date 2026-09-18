@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notification.Service.Data;
-using Notification.Service.Entities;
+using NotificationService = Notification.Service.Entities;
 using Contracts.Events;
 
 namespace Notification.Service.Handlers;
@@ -182,7 +182,7 @@ public class CreateNotificationHandler : ICreateNotificationHandler
         {
             try
             {
-                var notification = new Notification
+                var notification = new NotificationService.Notification
                 {
                     NotificationId = Guid.NewGuid(),
                     OrderId = orderId,
@@ -190,7 +190,7 @@ public class CreateNotificationHandler : ICreateNotificationHandler
                     EventType = eventType,
                     Subject = subject,
                     Message = message,
-                    Status = NotificationStatus.Pending,
+                    Status = NotificationService.NotificationStatus.Pending,
                     MessageId = messageId,
                     CorrelationId = correlationId,
                     CreatedAt = DateTime.UtcNow

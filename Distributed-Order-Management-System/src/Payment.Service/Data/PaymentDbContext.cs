@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Payment.Service.Entities;
+using PaymentService = Payment.Service.Entities;
 
 namespace Payment.Service.Data;
 
@@ -26,12 +26,12 @@ public class PaymentDbContext : DbContext
     /// <summary>
     /// Payments table
     /// </summary>
-    public DbSet<Payment> Payments { get; set; } = null!;
+    public DbSet<PaymentService.Payment> Payments { get; set; } = null!;
 
     /// <summary>
     /// Refunds table
     /// </summary>
-    public DbSet<Refund> Refunds { get; set; } = null!;
+    public DbSet<PaymentService.Refund> Refunds { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,7 +41,7 @@ public class PaymentDbContext : DbContext
         // PAYMENTS TABLE
         // ====================================================================
 
-        modelBuilder.Entity<Payment>(b =>
+        modelBuilder.Entity<PaymentService.Payment>(b =>
         {
             // Key
             b.HasKey(p => p.PaymentId);
@@ -105,7 +105,7 @@ public class PaymentDbContext : DbContext
         // REFUNDS TABLE
         // ====================================================================
 
-        modelBuilder.Entity<Refund>(b =>
+        modelBuilder.Entity<PaymentService.Refund>(b =>
         {
             // Key
             b.HasKey(r => r.RefundId);

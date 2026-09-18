@@ -21,7 +21,7 @@ public interface IInboxProcessor
     /// Record that a message has been processed
     /// Must be called atomically with message processing
     /// </summary>
-    Task<void> RecordProcessedAsync(
+    Task RecordProcessedAsync(
         Guid messageId,
         Guid orderId,
         string messageType,
@@ -98,7 +98,7 @@ public class InboxProcessor : IInboxProcessor
     ///     await transaction.CommitAsync();
     /// }
     /// </summary>
-    public async Task<void> RecordProcessedAsync(
+    public async Task RecordProcessedAsync(
         Guid messageId,
         Guid orderId,
         string messageType,

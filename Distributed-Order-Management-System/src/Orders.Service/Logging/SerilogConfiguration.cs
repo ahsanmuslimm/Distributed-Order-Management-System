@@ -29,12 +29,11 @@ public static class SerilogConfiguration
             .MinimumLevel.Information()
             .Enrich.FromLogContext()
             .Enrich.WithMachineName()
-            .Enrich.WithThreadId()
             .Enrich.With<CorrelationIdEnricher>();
 
         // Console output (always)
         config.WriteTo.Console(
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{MachineName}:{ThreadId}] {CorrelationId} {Message:lj}{NewLine}{Exception}");
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{MachineName}] {CorrelationId} {Message:lj}{NewLine}{Exception}");
 
         // File output (structured JSON)
         config.WriteTo.File(

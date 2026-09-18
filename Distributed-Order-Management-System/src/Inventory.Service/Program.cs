@@ -34,7 +34,7 @@ SerilogConfiguration.ConfigureSerilog();
 
 try
 {
-    var builder = WebApplicationBuilder.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(args);
 
     // ====================================================================
     // SERVICES
@@ -83,7 +83,7 @@ try
 
     // API
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddOpenApi();
+    builder.Services.AddSwaggerGen();
 
     // ====================================================================
     // BUILD
@@ -115,11 +115,8 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
-        app.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("/openapi/v1.json", "Inventory Service API");
-        });
+        app.UseSwagger();
+        app.UseSwaggerUI();
     }
 
     // ====================================================================
@@ -157,4 +154,3 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
-

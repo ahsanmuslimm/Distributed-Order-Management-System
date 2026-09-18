@@ -7,7 +7,7 @@ using Orders.Service.Logging;
 using Orders.Service.Middleware;
 using Serilog;
 
-var builder = WebApplicationBuilder.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 // ========================================================================
 // Configure Logging (Serilog) - MUST be first

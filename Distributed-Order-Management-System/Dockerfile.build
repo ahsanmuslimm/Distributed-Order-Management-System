@@ -1,0 +1,23 @@
+# Multi-stage build for all microservices
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+
+WORKDIR /src
+
+# Copy all source
+COPY . .
+
+# Build each service
+RUN dotnet build src/Contracts/Contracts.csproj --no-restore
+RUN dotnet build src/Gateway/Gateway.csproj --no-restore
+RUN dotnet build src/Payment.Service/Payment.Service.csproj --no-restore
+RUN dotnet build src/Notification.Service/Notification.Service.csproj --no-restore
+RUN dotnet build src/Orders.Service/Orders.Service.csproj --no-restore
+RUN dotnet build src/Inventory.Service/Inventory.Service.csproj --no-restore
+RUN dotnet build src/Saga.Orchestrator/Saga.Orchestrator.csproj --no-restore
+RUN dotnet build src/Observability/Observability.csproj --no-restore
+
+# Build test project
+RUN dotnet build tests/Integration/Integration.Tests.csproj --no-restore
+
+# Run tests
+RUN dotnet test tests/Integration/Integration.Tests.csproj --no-build --logger "console;verbosity=normal"
