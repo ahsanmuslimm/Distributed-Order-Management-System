@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Serilog;
+using Microsoft.AspNetCore.OpenApi;
 using Inventory.Service.Data;
 using Inventory.Service.Domain;
 using Inventory.Service.Endpoints;
@@ -83,7 +84,6 @@ try
 
     // API
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
 
     // ====================================================================
     // BUILD
@@ -115,8 +115,10 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/openapi/v1.json", "Inventory Service API");
+        });
     }
 
     // ====================================================================
@@ -154,3 +156,4 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+

@@ -73,10 +73,7 @@ public static class CorrelationIdExtensions
     /// </summary>
     public static void AddCorrelationIdHeader(this HttpResponse response, Guid correlationId)
     {
-        if (!response.Headers.ContainsKey(CorrelationIdHeader))
-        {
-            response.Headers.Add(CorrelationIdHeader, correlationId.ToString());
-        }
+        response.Headers.Add(CorrelationIdHeader, correlationId.ToString());
     }
 }
 

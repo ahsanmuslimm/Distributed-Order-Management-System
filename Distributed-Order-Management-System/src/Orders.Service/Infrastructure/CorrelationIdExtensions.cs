@@ -42,7 +42,7 @@ public static class CorrelationIdExtensions
         if (response == null)
             throw new ArgumentNullException(nameof(response));
 
-        // Only add if not already present to avoid duplicate key errors
+        // Only add if not already present (avoid duplicate header exceptions)
         if (!response.Headers.ContainsKey(CorrelationIdHeader))
         {
             response.Headers.Add(CorrelationIdHeader, correlationId.ToString());

@@ -1,6 +1,7 @@
-using Saga.Orchestrator.Entities;
-
 namespace Saga.Orchestrator.Domain;
+
+using Saga.Orchestrator.Entities;
+using SagaEventType = Saga.Orchestrator.Entities.SagaEventType;
 
 /// <summary>
 /// Saga State Machine
@@ -28,7 +29,7 @@ public interface ISagaStateMachine
     /// <summary>
     /// Check if saga should timeout (stuck for too long)
     /// </summary>
-    bool ShouldTimeout(SagaState sagaState, TimeSpan? timeout = null);
+    bool ShouldTimeout(SagaState sagaState, TimeSpan? customTimeout = null);
 }
 
 /// <summary>
@@ -38,17 +39,17 @@ public record SagaEvent
 {
     public required Guid SagaId { get; init; }
     public required Guid OrderId { get; init; }
-    public required Entities.SagaEventType EventType { get; init; }
+    public required SagaEventType EventType { get; init; }
     public string? Reason { get; init; }
     public Guid CorrelationId { get; init; }
 }
 
 /// <summary>
-/// Transition Result - What happens after processing event
+/// Event Types
 /// </summary>
 public record SagaTransitionResult
 {
-    public required Entities.SagaStatus NewStatus { get; init; }
+    public required SagaStatus NewStatus { get; init; }
     public required bool IsValid { get; init; }  // Valid transition?
     public string? ErrorMessage { get; init; }
     public List<string> CommandsToSend { get; init; } = new();
@@ -75,13 +76,13 @@ public class SagaStateMachine : ISagaStateMachine
             // ====================================================================
             // PENDING STATE: Waiting for inventory
             // ====================================================================
-            Entities.SagaStatus.Pending => @event.EventType switch
+            SagaStatus.Pending => @event.EventType switch
             {
-                Entities.SagaEventType.InventoryReserved =>
-                    ValidTransition(Entities.SagaStatus.InventoryReserved, "Inventory reserved, charging payment..."),
+                SagaEventType.InventoryReserved =>
+                    ValidTransition(SagaStatus.InventoryReserved, "Inventory reserved, charging payment..."),
 
-                Entities.SagaEventType.InventoryRejected =>
-                    Failure(Entities.SagaStatus.Failed, @event.Reason ?? "Inventory unavailable", 
+                SagaEventType.InventoryRejected =>
+                    Failure(SagaStatus.Failed, @event.Reason ?? "Inventory unavailable", 
                         commandsToSend: new[] { "FailOrder" }),
 
                 _ => InvalidTransition($"Unexpected event {EventType(@event.EventType)} in Pending state")
@@ -90,14 +91,14 @@ public class SagaStateMachine : ISagaStateMachine
             // ====================================================================
             // INVENTORY_RESERVED STATE: Waiting for payment
             // ====================================================================
-            Entities.SagaStatus.InventoryReserved => @event.EventType switch
+            SagaStatus.InventoryReserved => @event.EventType switch
             {
-                Entities.SagaEventType.PaymentCharged =>
-                    ValidTransition(Entities.SagaStatus.PaymentCharged, "Payment charged, confirming order..."),
+                SagaEventType.PaymentCharged =>
+                    ValidTransition(SagaStatus.PaymentCharged, "Payment charged, confirming order..."),
 
-                Entities.SagaEventType.PaymentFailed =>
+                SagaEventType.PaymentFailed =>
                     // COMPENSATION: Release inventory
-                    Failure(Entities.SagaStatus.CompensationInProgress, 
+                    Failure(SagaStatus.CompensationInProgress, 
                         @event.Reason ?? "Payment failed",
                         commandsToSend: new[] { "ReleaseInventory" }),
 
@@ -107,14 +108,14 @@ public class SagaStateMachine : ISagaStateMachine
             // ====================================================================
             // PAYMENT_CHARGED STATE: Waiting for confirmation
             // ====================================================================
-            Entities.SagaStatus.PaymentCharged => @event.EventType switch
+            SagaStatus.PaymentCharged => @event.EventType switch
             {
-                Entities.SagaEventType.OrderConfirmed =>
-                    ValidTransition(Entities.SagaStatus.Completed, "Order confirmed!"),
+                SagaEventType.OrderConfirmed =>
+                    ValidTransition(SagaStatus.Completed, "Order confirmed!"),
 
-                Entities.SagaEventType.OrderConfirmationFailed =>
+                SagaEventType.OrderConfirmationFailed =>
                     // COMPENSATION: Refund payment AND release inventory
-                    Failure(Entities.SagaStatus.CompensationInProgress,
+                    Failure(SagaStatus.CompensationInProgress,
                         @event.Reason ?? "Order confirmation failed",
                         commandsToSend: new[] { "RefundPayment", "ReleaseInventory" }),
 
@@ -124,13 +125,13 @@ public class SagaStateMachine : ISagaStateMachine
             // ====================================================================
             // COMPENSATION_IN_PROGRESS STATE: Sending compensations
             // ====================================================================
-            Entities.SagaStatus.CompensationInProgress => @event.EventType switch
+            SagaStatus.CompensationInProgress => @event.EventType switch
             {
-                Entities.SagaEventType.InventoryRejected =>
-                    Failure(Entities.SagaStatus.Failed, "Compensation failed: inventory release rejected"),
+                SagaEventType.InventoryRejected =>
+                    Failure(SagaStatus.Failed, "Compensation failed: inventory release rejected"),
 
-                Entities.SagaEventType.PaymentFailed =>
-                    Failure(Entities.SagaStatus.Failed, "Compensation failed: refund failed"),
+                SagaEventType.PaymentFailed =>
+                    Failure(SagaStatus.Failed, "Compensation failed: refund failed"),
 
                 _ => InvalidTransition($"Unexpected event {EventType(@event.EventType)} during compensation")
             },
@@ -138,7 +139,7 @@ public class SagaStateMachine : ISagaStateMachine
             // ====================================================================
             // COMPLETED/FAILED: Terminal states
             // ====================================================================
-            Entities.SagaStatus.Completed or Entities.SagaStatus.Failed =>
+            SagaStatus.Completed or SagaStatus.Failed =>
                 InvalidTransition($"Cannot process events in terminal state {currentState.Status}"),
 
             _ => InvalidTransition($"Unknown state: {currentState.Status}")
@@ -153,10 +154,10 @@ public class SagaStateMachine : ISagaStateMachine
         return sagaState.Status switch
         {
             // If we reserved inventory but payment failed, release it
-            Entities.SagaStatus.InventoryReserved => new[] { "ReleaseInventory" },
+            SagaStatus.InventoryReserved => new[] { "ReleaseInventory" },
 
             // If we charged payment but order failed, refund + release
-            Entities.SagaStatus.PaymentCharged => new[] { "RefundPayment", "ReleaseInventory" },
+            SagaStatus.PaymentCharged => new[] { "RefundPayment", "ReleaseInventory" },
 
             _ => Array.Empty<string>()
         };
@@ -173,7 +174,11 @@ public class SagaStateMachine : ISagaStateMachine
         return elapsedTime > timeout;
     }
 
-    private SagaTransitionResult ValidTransition(Entities.SagaStatus newStatus, string nextStep)
+    // ========================================================================
+    // Private Helpers
+    // ========================================================================
+
+    private SagaTransitionResult ValidTransition(SagaStatus newStatus, string nextStep)
     {
         return new SagaTransitionResult
         {
@@ -185,7 +190,7 @@ public class SagaStateMachine : ISagaStateMachine
     }
 
     private SagaTransitionResult Failure(
-        Entities.SagaStatus newStatus,
+        SagaStatus newStatus,
         string reason,
         IEnumerable<string>? commandsToSend = null)
     {
@@ -202,14 +207,14 @@ public class SagaStateMachine : ISagaStateMachine
     {
         return new SagaTransitionResult
         {
-            NewStatus = Entities.SagaStatus.Failed,
+            NewStatus = SagaStatus.Failed,
             IsValid = false,
             ErrorMessage = reason,
             CommandsToSend = new()
         };
     }
 
-    private string EventType(Entities.SagaEventType type)
+    private string EventType(SagaEventType type)
     {
         return type.ToString();
     }

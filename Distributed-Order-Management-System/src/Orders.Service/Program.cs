@@ -22,7 +22,8 @@ builder.AddSerilog();
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("OrderDb") 
-        ?? "User Id=postgres;Password=postgres;Host=localhost;Port=5432;Database=orders;")
+        ?? "User Id=postgres;Password=postgres;Host=localhost;Port=5432;Database=orders;",
+        npg => npg.MigrationsAssembly("Orders.Service"))
 );
 
 // Handlers
@@ -53,6 +54,37 @@ builder.Services.AddCors(options =>
 // ========================================================================
 
 var app = builder.Build();
+
+// ========================================================================
+// Apply Migrations
+// ========================================================================
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+    try
+    {
+        Log.Information("Applying database migrations...");
+        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync()).ToList();
+        Log.Information("Found {PendingMigrationCount} pending migrations", pendingMigrations.Count);
+        
+        if (pendingMigrations.Count > 0)
+        {
+            foreach (var migration in pendingMigrations)
+            {
+                Log.Information("Applying migration: {MigrationName}", migration);
+            }
+        }
+        
+        await dbContext.Database.MigrateAsync();
+        Log.Information("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to apply database migrations");
+        throw;
+    }
+}
 
 // ========================================================================
 // Middleware Pipeline (Order Matters!)

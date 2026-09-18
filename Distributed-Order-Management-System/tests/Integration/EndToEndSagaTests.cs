@@ -62,10 +62,7 @@ public class EndToEndSagaTests : IAsyncLifetime
         // Payment Service: http://localhost:5003
         // Saga Orchestrator: http://localhost:5005
         
-        var handler = new HttpClientHandler();
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
-        
-        _httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000") };
+        _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:5000") };
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         
         // DbContext instances would need connection strings to local PostgreSQL instances
@@ -442,6 +439,9 @@ public class EndToEndSagaTests : IAsyncLifetime
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadFromJsonAsync<OrderResponse>();
+                    
+                    // Saga completes when order reaches terminal state
+                    if (content.Status == "Confirmed" || content.Status == "Failed")
                     {
                         return;
                     }

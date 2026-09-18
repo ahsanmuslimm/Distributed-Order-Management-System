@@ -14,18 +14,13 @@
     <!-- Serialization -->
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
 
-    <!-- Kafka -->
-    <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
-
     <!-- OpenTelemetry -->
-    <PackageReference Include="OpenTelemetry" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.15.0" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="10.0.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.6.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Otlp" Version="1.6.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.6.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.6.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.6.0-beta.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

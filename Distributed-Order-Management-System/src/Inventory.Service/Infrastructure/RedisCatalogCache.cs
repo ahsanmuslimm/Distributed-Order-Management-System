@@ -140,7 +140,7 @@ public class RedisCatalogCache : IRedisCatalogCache
 
             var db = _redis.GetDatabase();
             var result = await db.PingAsync();
-            return result > TimeSpan.Zero;
+            return result != TimeSpan.Zero;
         }
         catch (Exception ex)
         {

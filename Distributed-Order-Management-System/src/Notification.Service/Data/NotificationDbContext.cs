@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NotificationService = Notification.Service.Entities;
+using Notification.Service.Entities;
 
 namespace Notification.Service.Data;
 
@@ -17,8 +17,8 @@ public class NotificationDbContext : DbContext
     {
     }
 
-    public DbSet<NotificationService.Notification> Notifications => Set<NotificationService.Notification>();
-    public DbSet<NotificationService.NotificationRetry> NotificationRetries => Set<NotificationService.NotificationRetry>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<NotificationRetry> NotificationRetries => Set<NotificationRetry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,7 +27,7 @@ public class NotificationDbContext : DbContext
         // ========================================================================
         // Notification Entity Configuration
         // ========================================================================
-        var notificationBuilder = modelBuilder.Entity<NotificationService.Notification>();
+        var notificationBuilder = modelBuilder.Entity<Notification>();
 
         notificationBuilder.HasKey(n => n.NotificationId);
 
@@ -105,7 +105,7 @@ public class NotificationDbContext : DbContext
         // ========================================================================
         // NotificationRetry Entity Configuration
         // ========================================================================
-        var retryBuilder = modelBuilder.Entity<NotificationService.NotificationRetry>();
+        var retryBuilder = modelBuilder.Entity<NotificationRetry>();
 
         retryBuilder.HasKey(r => r.RetryId);
 
@@ -136,7 +136,7 @@ public class NotificationDbContext : DbContext
             .HasDatabaseName("IDX_RetryAttemptedAt");
 
         // Foreign key
-        retryBuilder.HasOne<NotificationService.Notification>()
+        retryBuilder.HasOne<Notification>()
             .WithMany()
             .HasForeignKey(r => r.NotificationId)
             .OnDelete(DeleteBehavior.Cascade);

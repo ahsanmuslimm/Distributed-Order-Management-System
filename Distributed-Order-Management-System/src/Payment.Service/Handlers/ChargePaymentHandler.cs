@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Payment.Service.Data;
 using Payment.Service.Domain;
-using PaymentService = Payment.Service.Entities;
+using Payment.Service.Entities;
 
 namespace Payment.Service.Handlers;
 
@@ -78,13 +78,13 @@ public class ChargePaymentHandler
                 if (shouldFail)
                 {
                     // Create failed payment record
-                    var failedPayment = new PaymentService.Payment
+                    var failedPayment = new Entities.Payment
                     {
                         PaymentId = Guid.NewGuid(),
                         OrderId = command.OrderId,
                         CustomerId = command.CustomerId,
                         Amount = command.Amount,
-                        Status = PaymentService.PaymentStatus.Failed,
+                        Status = PaymentStatus.Failed,
                         MessageId = command.MessageId,
                         CorrelationId = correlationId,
                         ProcessedAt = DateTime.UtcNow
@@ -113,13 +113,13 @@ public class ChargePaymentHandler
                     // Create successful payment record
                     var transactionId = Guid.NewGuid().ToString("N")[..16];  // Simulate transaction ID
 
-                    var successPayment = new PaymentService.Payment
+                    var successPayment = new Entities.Payment
                     {
                         PaymentId = Guid.NewGuid(),
                         OrderId = command.OrderId,
                         CustomerId = command.CustomerId,
                         Amount = command.Amount,
-                        Status = PaymentService.PaymentStatus.Charged,
+                        Status = PaymentStatus.Charged,
                         TransactionId = transactionId,
                         MessageId = command.MessageId,
                         CorrelationId = correlationId,
