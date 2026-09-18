@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Contracts.Commands;
@@ -189,15 +190,37 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper
         CancellationToken cancellationToken) where T : class
     {
         // In production, this would be:
+        // var headers = new Confluent.Kafka.Headers
+        // {
+        //     { "MessageId", Encoding.UTF8.GetBytes(messageId.ToString()) },
+        //     { "CorrelationId", Encoding.UTF8.GetBytes(correlationId.ToString()) }
+        // };
+        //
+        // // Inject W3C trace context
+        // var activity = Activity.Current ?? new Activity("KafkaProducer").Start();
+        // var traceparent = W3CTraceContext.Create(activity.Context);
+        // headers.Add("traceparent", Encoding.UTF8.GetBytes(traceparent));
+        //
         // await _publishEndpoint.Publish(message, context =>
         // {
-        //     context.Headers.Set("MessageId", messageId.ToString());
-        //     context.Headers.Set("CorrelationId", correlationId.ToString());
         //     context.SetDelayedRedelivery(TimeSpan.FromSeconds(1));
         // }, cancellationToken);
 
-        // For testing, simulate async operation
-        await Task.Delay(10, cancellationToken);
+        // Record Kafka instrumentation
+        using (var activity = KafkaInstrumentationSource.RecordProducerOperation(
+            topicName,
+            partitionCount: 1,
+            messageSize: JsonSerializer.Serialize(message).Length))
+        {
+            // For testing, simulate async operation
+            await Task.Delay(10, cancellationToken);
+
+            _logger.LogDebug(
+                "Message prepared for Kafka. MessageId: {MessageId}, CorrelationId: {CorrelationId}, " +
+                "Topic: {Topic}, TraceId: {TraceId}, SpanId: {SpanId}",
+                messageId, correlationId, topicName,
+                Activity.Current?.Id, Activity.Current?.SpanId);
+        }
     }
 
     /// <summary>

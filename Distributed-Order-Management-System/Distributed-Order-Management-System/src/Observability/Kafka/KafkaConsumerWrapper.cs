@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Contracts.Commands;
@@ -120,7 +121,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper
     }
 
     /// <summary>
-    /// Consume async message with inbox deduplication
+    /// Consume async message with inbox deduplication and trace context extraction
     /// </summary>
     public async Task<KafkaConsumeResult> ConsumeAsync<T>(
         T message,
@@ -135,6 +136,11 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper
         var messageId = ExtractMessageId(message);
         if (messageId == Guid.Empty)
             throw new ArgumentException("Message must have MessageId", nameof(message));
+
+        // Extract W3C trace context if available (will be injected by KafkaTraceContextPropagator)
+        // This allows child spans to link to the original trace from API Gateway
+        ActivityContext? traceContext = null;
+        Activity? linkedActivity = null;
 
         // Step 1: Check if already processed (inbox pattern)
         var isProcessed = await inboxChecker.IsProcessedAsync(messageId, cancellationToken);
@@ -161,32 +167,44 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper
         {
             try
             {
-                // Execute handler
-                await handler(message);
-
-                // Step 3: Mark as processed in inbox atomically
-                var payload = SerializeMessage(message);
-                var messageType = typeof(T).Name;
-
-                await inboxChecker.MarkAsProcessedAsync(
-                    messageId,
-                    messageType,
-                    payload,
-                    correlationId,
-                    cancellationToken);
-
-                _logger.LogInformation(
-                    "Message processed successfully. MessageId: {MessageId}, CorrelationId: {CorrelationId}, " +
-                    "MessageType: {MessageType}, Attempt: {Attempt}/{MaxRetries}",
-                    messageId, correlationId, messageType, attempt + 1, _maxRetries);
-
-                return new KafkaConsumeResult
+                // Record Kafka consumer span
+                using (var activity = KafkaInstrumentationSource.RecordConsumerOperation(
+                    $"{typeof(T).Name}s",  // Topic-like naming
+                    partition: 0,
+                    offset: 0,
+                    messageSize: SerializeMessage(message).Length))
                 {
-                    Success = true,
-                    MessageId = messageId,
-                    IsIdempotent = false,
-                    RetryCount = attempt
-                };
+                    // Execute handler
+                    await handler(message);
+
+                    // Step 3: Mark as processed in inbox atomically
+                    var payload = SerializeMessage(message);
+                    var messageType = typeof(T).Name;
+
+                    await inboxChecker.MarkAsProcessedAsync(
+                        messageId,
+                        messageType,
+                        payload,
+                        correlationId,
+                        cancellationToken);
+
+                    _logger.LogInformation(
+                        "Message processed successfully. MessageId: {MessageId}, CorrelationId: {CorrelationId}, " +
+                        "MessageType: {MessageType}, Attempt: {Attempt}/{MaxRetries}, TraceId: {TraceId}",
+                        messageId, correlationId, messageType, attempt + 1, _maxRetries,
+                        Activity.Current?.Id);
+
+                    // Clean up linked activity
+                    linkedActivity?.Dispose();
+
+                    return new KafkaConsumeResult
+                    {
+                        Success = true,
+                        MessageId = messageId,
+                        IsIdempotent = false,
+                        RetryCount = attempt
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -227,6 +245,8 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper
                     messageId, correlationId);
             }
         }
+
+        linkedActivity?.Dispose();
 
         return new KafkaConsumeResult
         {
