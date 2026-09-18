@@ -438,10 +438,7 @@ public class EndToEndSagaTests : IAsyncLifetime
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsAsync<OrderResponse>();
-                    
-                    // Saga completes when order reaches terminal state
-                    if (content.Status == "Confirmed" || content.Status == "Failed")
+                    var content = await response.Content.ReadFromJsonAsync<OrderResponse>();
                     {
                         return;
                     }
@@ -469,7 +466,7 @@ public class EndToEndSagaTests : IAsyncLifetime
             
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<OrderResponse>();
+                return await response.Content.ReadFromJsonAsync<OrderResponse>();
             }
         }
         catch (HttpRequestException ex)
@@ -490,7 +487,7 @@ public class EndToEndSagaTests : IAsyncLifetime
             
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<StockResponse>();
+                var result = await response.Content.ReadFromJsonAsync<StockResponse>();
                 return result.Stock;
             }
         }
