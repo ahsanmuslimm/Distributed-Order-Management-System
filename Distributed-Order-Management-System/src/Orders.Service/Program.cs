@@ -5,6 +5,7 @@ using Orders.Service.Handlers;
 using Orders.Service.Infrastructure;
 using Orders.Service.Logging;
 using Orders.Service.Middleware;
+using Orders.Service.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,10 @@ builder.Services.AddScoped<GetOrderStatusHandler>();
 
 // Infrastructure
 builder.Services.AddScoped<IInboxProcessor, InboxProcessor>();
+
+// Background Services
+builder.Services.AddHostedService<SagaProcessingService>();
+builder.Services.AddHttpClient<SagaProcessingService>();
 
 // API
 builder.Services.AddControllers();

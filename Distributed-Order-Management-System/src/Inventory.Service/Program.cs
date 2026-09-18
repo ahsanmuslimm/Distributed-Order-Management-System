@@ -79,6 +79,10 @@ try
     builder.Services.AddScoped<ReserveInventoryHandler>();
     builder.Services.AddScoped<ReleaseInventoryHandler>();
 
+    // Endpoint handlers
+    builder.Services.AddScoped<ReserveInventoryEndpoint>();
+    builder.Services.AddScoped<ReleaseInventoryEndpoint>();
+
     // Background services
     builder.Services.AddHostedService<CacheConsistencyJob>();
 
@@ -130,6 +134,10 @@ try
 
     // Stock (real-time from ledger, no cache)
     GetStockEndpoint.Map(app);
+
+    // Inventory management
+    ReserveInventoryEndpoint.Map(app);
+    ReleaseInventoryEndpoint.Map(app);
 
     // Health check
     app.MapGet("/health", async (InventoryDbContext db) =>

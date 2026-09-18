@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.OpenApi;
 using Payment.Service.Data;
 using Payment.Service.Domain;
+using Payment.Service.Endpoints;
 using Payment.Service.Handlers;
 using Entities = Payment.Service.Entities;
 
@@ -22,6 +23,10 @@ builder.Services.AddDbContext<PaymentDbContext>(options =>
 // Handlers
 builder.Services.AddScoped<ChargePaymentHandler>();
 builder.Services.AddScoped<RefundPaymentHandler>();
+
+// Endpoint handlers
+builder.Services.AddScoped<ChargePaymentEndpoint>();
+builder.Services.AddScoped<RefundPaymentEndpoint>();
 
 // Failure injection for testing (set to 0.0 in production, higher in tests)
 builder.Services.AddScoped<IPaymentFailureInjector>(provider =>
@@ -83,6 +88,10 @@ using (var scope = app.Services.CreateScope())
 // Health check
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment" }))
     .WithName("Health");
+
+// Payment endpoints
+ChargePaymentEndpoint.Map(app);
+RefundPaymentEndpoint.Map(app);
 
 // ========================================================================
 // Run
