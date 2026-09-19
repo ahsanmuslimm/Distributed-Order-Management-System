@@ -42,7 +42,7 @@ If you just want to see the project in action quickly:
 npm install -g hyperframes
 
 # 2. Create video project
-cd d:\temp
+cd /video-project
 npx hyperframes init order-management-video
 cd order-management-video
 npm install

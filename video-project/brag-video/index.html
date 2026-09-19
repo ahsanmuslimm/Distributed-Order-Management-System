@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px;
+        overflow: hidden; background: #0a0a1a;
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      }
+      .clip {
+        position: absolute; top: 0; left: 0;
+        width: 1920px; height: 1080px;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 1: OPENING TITLE (0s – 5s)
+         ═══════════════════════════════════════════ */
+      #scene-opening {
+        background: linear-gradient(135deg, #0a1628 0%, #0d2847 30%, #0066cc 70%, #1a8cff 100%);
+        flex-direction: column; gap: 20px;
+      }
+      #scene-opening .grid-bg {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      #scene-opening .glow {
+        position: absolute; width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(0,102,204,0.4) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(80px);
+      }
+      #scene-opening .glow-1 { top: -100px; right: -100px; }
+      #scene-opening .glow-2 { bottom: -150px; left: -100px; }
+      .title-main {
+        color: #ffffff; font-size: 72px; font-weight: 800;
+        letter-spacing: -0.03em; text-align: center;
+        text-shadow: 0 0 60px rgba(0,102,204,0.5);
+        z-index: 1;
+      }
+      .title-sub {
+        color: rgba(255,255,255,0.8); font-size: 32px; font-weight: 400;
+        letter-spacing: 0.02em; text-align: center; z-index: 1;
+      }
+      .title-badge {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: rgba(0,170,68,0.2); border: 1px solid rgba(0,170,68,0.4);
+        border-radius: 30px; padding: 10px 28px; color: #06de59;
+        font-size: 18px; font-weight: 600; z-index: 1;
+        letter-spacing: 0.05em;
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 2: CHECKOUT FLOW (5s – 20s)
+         ═══════════════════════════════════════════ */
+      #scene-checkout {
+        background: linear-gradient(160deg, #0a0a1a 0%, #111133 100%);
+        flex-direction: column; align-items: center; gap: 30px;
+      }
+      .scene-label {
+        position: absolute; top: 40px; left: 60px;
+        color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 500;
+        letter-spacing: 0.15em; text-transform: uppercase;
+      }
+      .product-grid {
+        display: grid; grid-template-columns: repeat(3, 320px);
+        gap: 24px; z-index: 1;
+      }
+      .product-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px; padding: 24px;
+        transition: all 0.3s;
+      }
+      .product-card .icon {
+        width: 60px; height: 60px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px; margin-bottom: 16px;
+      }
+      .product-card .icon.blue { background: rgba(0,102,204,0.3); }
+      .product-card .icon.purple { background: rgba(128,0,255,0.3); }
+      .product-card .icon.green { background: rgba(0,170,68,0.3); }
+      .product-card .name { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+      .product-card .price { color: #1a8cff; font-size: 24px; font-weight: 700; }
+      .product-card .desc { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 12px; }
+      .cart-bar {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        padding: 24px 60px; display: flex;
+        align-items: center; justify-content: space-between;
+      }
+      .cart-info { color: #fff; font-size: 20px; font-weight: 500; }
+      .cart-total { color: #1a8cff; font-size: 28px; font-weight: 700; }
+      .cart-badge {
+        background: #0066cc; color: #fff; border-radius: 50%;
+        width: 28px; height: 28px; display: inline-flex;
+        align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 700; margin-left: 10px;
+      }
+      .step-circle {
+        color: rgba(255,255,255,0.5);
+      }
+      .add-btn {
+        background: #1a8cff; color: #000; border: none;
+        border-radius: 10px; padding: 10px 20px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        margin-top: 12px;
+      }
+      .added-indicator {
+        color: #00dd55; font-size: 14px; font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 3: ORDER CONFIRMATION (20s – 30s)
+         ═══════════════════════════════════════════ */
+      #scene-confirm {
+        background: linear-gradient(160deg, #0a0a1a 0%, #0d1a2d 100%);
+        flex-direction: column; gap: 28px;
+      }
+      .confirm-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px; padding: 50px 70px;
+        text-align: center; z-index: 1;
+      }
+      .confirm-check {
+        width: 90px; height: 90px; border-radius: 50%;
+        background: rgba(0,170,68,0.15); border: 3px solid #00aa44;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 24px; font-size: 44px; color: #00dd55;
+      }
+      .confirm-title { color: #fff; font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+      .confirm-sub { color: rgba(255,255,255,0.5); font-size: 18px; margin-bottom: 30px; }
+      .order-id-box {
+        background: rgba(0,102,204,0.1); border: 1px solid rgba(0,102,204,0.3);
+        border-radius: 12px; padding: 18px 36px; display: inline-block;
+      }
+      .order-id-label { color: rgba(255,255,255,0.4); font-size: 13px; letter-spacing: 0.1em; }
+      .order-id-value { color: #1a8cff; font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace; }
+
+      /* ═══════════════════════════════════════════
+         SCENE 4: REAL-TIME TRACKING (30s – 40s)
+         ═══════════════════════════════════════════ */
+      #scene-tracking {
+        background: linear-gradient(160deg, #0a0a1a 0%, #111133 100%);
+        flex-direction: column; gap: 36px;
+      }
+      .tracking-title { color: #fff; font-size: 36px; font-weight: 700; z-index: 1; }
+      .tracking-steps {
+        display: flex; gap: 0; align-items: center; z-index: 1;
+      }
+      .tracking-step {
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+        width: 200px;
+      }
+      .step-circle {
+        width: 64px; height: 64px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 700;
+        border: 3px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.3);
+      }
+      .step-circle.active {
+        border-color: #0066cc; background: rgba(0,102,204,0.15); color: #1a8cff;
+      }
+      .step-circle.complete {
+        border-color: #00aa44; background: rgba(0,170,68,0.15); color: #00dd55;
+      }
+      .step-label { color: rgba(255,255,255,0.5); font-size: 16px; font-weight: 500; }
+      .step-label.active { color: #1a8cff; }
+      .step-label.complete { color: #00dd55; }
+      .step-connector {
+        width: 80px; height: 3px; background: rgba(255,255,255,0.08);
+        margin-bottom: 30px;
+      }
+      .step-connector.complete { background: #00aa44; }
+
+      /* ═══════════════════════════════════════════
+         SCENE 5: PAYMENT FAILURE (40s – 50s)
+         ═══════════════════════════════════════════ */
+      #scene-failure {
+        background: linear-gradient(160deg, #1a0a0a 0%, #2d0d0d 50%, #0a0a1a 100%);
+        flex-direction: column; gap: 36px;
+      }
+      .failure-icon {
+        width: 120px; height: 120px; border-radius: 50%;
+        background: rgba(255,50,50,0.12); border: 3px solid #ff3232;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 64px; color: #ff4444; z-index: 1;
+      }
+      .failure-title { color: #ff4444; font-size: 42px; font-weight: 800; z-index: 1; }
+      .failure-sub { color: rgba(255,255,255,0.6); font-size: 22px; z-index: 1; }
+      .compensation-trigger {
+        background: rgba(0,170,68,0.08); border: 2px solid rgba(0,170,68,0.3);
+        border-radius: 16px; padding: 24px 48px; z-index: 1;
+        display: flex; align-items: center; gap: 16px;
+      }
+      .compensation-trigger .pulse {
+        width: 16px; height: 16px; border-radius: 50%;
+        background: #00dd55; box-shadow: 0 0 20px #00dd55;
+      }
+      .compensation-trigger .text {
+        color: #00dd55; font-size: 24px; font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .red-glow {
+        position: absolute; width: 800px; height: 800px;
+        background: radial-gradient(circle, rgba(255,50,50,0.15) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(100px);
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 6: COMPENSATION IN ACTION (50s – 58s)
+         ═══════════════════════════════════════════ */
+      #scene-compensation {
+        background: linear-gradient(160deg, #051a0d 0%, #0d2d1a 50%, #0a1a2d 100%);
+        flex-direction: column; gap: 36px;
+      }
+      .comp-icon {
+        width: 120px; height: 120px; border-radius: 50%;
+        background: rgba(0,220,85,0.12); border: 3px solid #00dd55;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 64px; color: #00dd55; z-index: 1;
+      }
+      .comp-title { color: #00dd55; font-size: 42px; font-weight: 800; z-index: 1; }
+      .comp-sub { color: rgba(255,255,255,0.7); font-size: 22px; z-index: 1; text-align: center; }
+      .comp-detail-row {
+        display: flex; gap: 40px; z-index: 1;
+      }
+      .comp-detail {
+        background: rgba(0,220,85,0.06); border: 1px solid rgba(0,220,85,0.2);
+        border-radius: 14px; padding: 24px 36px;
+        text-align: center;
+      }
+      .comp-detail .label { color: rgba(255,255,255,0.4); font-size: 14px; letter-spacing: 0.08em; margin-bottom: 8px; }
+      .comp-detail .value { color: #00dd55; font-size: 28px; font-weight: 700; }
+      .green-glow {
+        position: absolute; width: 800px; height: 800px;
+        background: radial-gradient(circle, rgba(0,220,85,0.12) 0%, transparent 70%);
+        border-radius: 50%; filter: blur(100px);
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+      }
+      .no-manual {
+        background: rgba(0,170,68,0.15); border: 2px solid #00aa44;
+        border-radius: 40px; padding: 16px 40px;
+        color: #00dd55; font-size: 24px; font-weight: 700;
+        z-index: 1; letter-spacing: 0.03em;
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 7: DISTRIBUTED TRACING (58s – 68s)
+         — Adjusted to fit 60s: 48s – 55s
+         ═══════════════════════════════════════════ */
+      #scene-tracing {
+        background: linear-gradient(160deg, #0a0a1a 0%, #0d1a33 100%);
+        flex-direction: column; gap: 20px;
+      }
+      .tracing-title { color: #fff; font-size: 32px; font-weight: 700; z-index: 1; }
+      .trace-diagram {
+        display: flex; flex-direction: column; gap: 8px;
+        z-index: 1; width: 900px;
+      }
+      .trace-span {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 15px; color: rgba(255,255,255,0.7);
+      }
+      .trace-span .svc-name {
+        width: 180px; text-align: right; font-weight: 500;
+        color: rgba(255,255,255,0.5); font-size: 14px;
+      }
+      .trace-span .bar {
+        height: 28px; border-radius: 4px; position: relative;
+        display: flex; align-items: center; padding-left: 10px;
+        font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 500;
+      }
+      .trace-span .bar.gateway { background: #2d5aa0; width: 680px; }
+      .trace-span .bar.order { background: #1a8cff; width: 600px; margin-left: 40px; }
+      .trace-span .bar.inventory { background: #6c5ce7; width: 200px; margin-left: 120px; }
+      .trace-span .bar.payment { background: #ff4444; width: 180px; margin-left: 160px; }
+      .trace-span .bar.saga { background: #00aa44; width: 400px; margin-left: 200px; }
+      .trace-span .bar.notification { background: #f39c12; width: 120px; margin-left: 300px; }
+      .trace-visibility {
+        color: rgba(255,255,255,0.5); font-size: 18px; z-index: 1;
+        text-align: center;
+      }
+      .trace-visibility strong { color: #1a8cff; font-weight: 700; }
+      .jaeger-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(0,102,204,0.1); border: 1px solid rgba(0,102,204,0.3);
+        border-radius: 8px; padding: 8px 20px;
+        color: #1a8cff; font-size: 14px; font-weight: 600;
+        z-index: 1;
+      }
+
+      /* ═══════════════════════════════════════════
+         SCENE 8: KEY METRICS (55s – 57s in 60s)
+         ═══════════════════════════════════════════ */
+      #scene-metrics {
+        background: linear-gradient(160deg, #0a0a1a 0%, #111133 100%);
+        flex-direction: column; gap: 48px;
+      }
+      .metrics-title { color: #fff; font-size: 32px; font-weight: 600; z-index: 1; }
+      .metrics-row { display: flex; gap: 60px; z-index: 1; }
+      .metric-card {
+        text-align: center; padding: 32px 48px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+      }
+      .metric-number { font-size: 72px; font-weight: 800; margin-bottom: 8px; }
+      .metric-number.blue { color: #1a8cff; }
+      .metric-number.green { color: #00dd55; }
+      .metric-number.purple { color: #a855f7; }
+      .metric-label { color: rgba(255,255,255,0.5); font-size: 18px; font-weight: 500; }
+
+      /* ═══════════════════════════════════════════
+         SCENE 9: CALL TO ACTION (57s – 60s)
+         ═══════════════════════════════════════════ */
+      #scene-cta {
+        background: linear-gradient(135deg, #0a1628 0%, #0066cc 50%, #1a8cff 100%);
+        flex-direction: column; gap: 28px;
+      }
+      #scene-cta .grid-bg {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      .cta-question { color: #fff; font-size: 48px; font-weight: 700; z-index: 1; text-align: center; }
+      .cta-button {
+        background: #fff; color: #0066cc; border: none;
+        border-radius: 14px; padding: 20px 48px;
+        font-size: 22px; font-weight: 700; z-index: 1;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      }
+      .cta-url { color: rgba(255,255,255,0.6); font-size: 16px; z-index: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080" data-layout-allow-overlap>
+
+      <!-- ═══ SCENE 1: OPENING TITLE (0s – 5s) ═══ -->
+      <div id="scene-opening" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="grid-bg"></div>
+        <div class="glow glow-1" data-layout-allow-overflow></div>
+        <div class="glow glow-2" data-layout-allow-overflow></div>
+        <div class="title-badge" id="open-badge">⚡ DISTRIBUTED SYSTEMS</div>
+        <h1 class="title-main" id="open-title">Distributed Order<br/>Management System</h1>
+        <p class="title-sub" id="open-sub">Automatic Compensation When Payment Fails</p>
+      </div>
+
+      <!-- ═══ SCENE 2: CHECKOUT FLOW (5s – 18s) ═══ -->
+      <div id="scene-checkout" class="clip" data-start="5" data-duration="13" data-track-index="0">
+        <span class="scene-label" style="color:rgba(255,255,255,0.5);">CHECKOUT FLOW</span>
+        <div class="product-grid" id="product-grid">
+          <div class="product-card" id="prod-1">
+            <div class="icon blue">📦</div>
+            <div class="name">Widget Pro</div>
+            <div class="desc">Premium component kit</div>
+            <div class="price">$49.99</div>
+            <button class="add-btn" id="add-1">Add to Cart</button>
+            <div class="added-indicator" id="added-1" style="opacity:0; margin-top:8px;">✓ Added</div>
+          </div>
+          <div class="product-card" id="prod-2">
+            <div class="icon purple">🔧</div>
+            <div class="name">Service Pack</div>
+            <div class="desc">Extended support plan</div>
+            <div class="price">$29.99</div>
+            <button class="add-btn" id="add-2">Add to Cart</button>
+            <div class="added-indicator" id="added-2" style="opacity:0; margin-top:8px;">✓ Added</div>
+          </div>
+          <div class="product-card" id="prod-3">
+            <div class="icon green">🚀</div>
+            <div class="name">Enterprise License</div>
+            <div class="desc">Full platform access</div>
+            <div class="price">$199.99</div>
+            <button class="add-btn" id="add-3">Add to Cart</button>
+            <div class="added-indicator" id="added-3" style="opacity:0; margin-top:8px;">✓ Added</div>
+          </div>
+        </div>
+        <div class="cart-bar" id="cart-bar">
+          <div class="cart-info">🛒 Cart <span class="cart-badge" id="cart-count">0</span></div>
+          <div class="cart-total" id="cart-total">$0.00</div>
+        </div>
+      </div>
+
+      <!-- ═══ SCENE 3: ORDER CONFIRMATION (18s – 27s) ═══ -->
+      <div id="scene-confirm" class="clip" data-start="18" data-duration="9" data-track-index="0">
+        <span class="scene-label" style="color:rgba(255,255,255,0.5);">ORDER CONFIRMATION</span>
+        <div class="confirm-card" id="confirm-card">
+          <div class="confirm-check" id="confirm-check">✓</div>
+          <div class="confirm-title" id="confirm-title">Order Placed Successfully!</div>
+          <div class="confirm-sub">Your order has been received and is being processed</div>
+          <div class="order-id-box" id="order-id-box">
+            <div class="order-id-label">ORDER ID</div>
+            <div class="order-id-value" id="order-id-value">ORD-2026-0918-7F3A</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SCENE 4: REAL-TIME TRACKING (27s – 35s) ═══ -->
+      <div id="scene-tracking" class="clip" data-start="27" data-duration="8" data-track-index="0">
+        <span class="scene-label" style="color:rgba(255,255,255,0.5);">REAL-TIME TRACKING</span>
+        <div class="tracking-title" id="tracking-title">Order Status</div>
+        <div class="tracking-steps" id="tracking-steps">
+          <div class="tracking-step">
+            <div class="step-circle" id="step-1">1</div>
+            <div class="step-label" id="step-1-label">Received</div>
+          </div>
+          <div class="step-connector" id="conn-1"></div>
+          <div class="tracking-step">
+            <div class="step-circle" id="step-2">2</div>
+            <div class="step-label" id="step-2-label">Inventory</div>
+          </div>
+          <div class="step-connector" id="conn-2"></div>
+          <div class="tracking-step">
+            <div class="step-circle" id="step-3">3</div>
+            <div class="step-label" id="step-3-label">Payment</div>
+          </div>
+          <div class="step-connector" id="conn-3"></div>
+          <div class="tracking-step">
+            <div class="step-circle" id="step-4">4</div>
+            <div class="step-label" id="step-4-label">Confirmed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SCENE 5: PAYMENT FAILURE (35s – 43s) ═══ -->
+      <div id="scene-failure" class="clip" data-start="35" data-duration="8" data-track-index="0">
+        <div class="red-glow" id="red-glow"></div>
+        <span class="scene-label" style="color:rgba(255,100,100,0.4);">INNOVATION HIGHLIGHT</span>
+        <div class="failure-icon" id="fail-icon">✗</div>
+        <div class="failure-title" id="fail-title">PAYMENT FAILED</div>
+        <div class="failure-sub" id="fail-sub">Transaction declined — but what happens to reserved inventory?</div>
+        <div class="compensation-trigger" id="comp-trigger">
+          <div class="pulse"></div>
+          <div class="text">⚡ Automatic Compensation Triggered</div>
+        </div>
+      </div>
+
+      <!-- ═══ SCENE 6: COMPENSATION IN ACTION (43s – 50s) ═══ -->
+      <div id="scene-compensation" class="clip" data-start="43" data-duration="7" data-track-index="0">
+        <div class="green-glow" id="green-glow"></div>
+        <span class="scene-label" style="color:rgba(0,220,85,0.4);">COMPENSATION IN ACTION</span>
+        <div class="comp-icon" id="comp-icon">✓</div>
+        <div class="comp-title" id="comp-title">Inventory Released</div>
+        <div class="comp-sub" id="comp-sub">Reserved stock automatically returned — zero data inconsistency</div>
+        <div class="comp-detail-row" id="comp-details">
+          <div class="comp-detail">
+            <div class="label">STATUS</div>
+            <div class="value">COMPENSATED</div>
+          </div>
+          <div class="comp-detail">
+            <div class="label">INVENTORY</div>
+            <div class="value">RELEASED</div>
+          </div>
+          <div class="comp-detail">
+            <div class="label">MANUAL WORK</div>
+            <div class="value">ZERO</div>
+          </div>
+        </div>
+        <div class="no-manual" id="no-manual">✓ No Manual Intervention Required</div>
+      </div>
+
+      <!-- ═══ SCENE 7: DISTRIBUTED TRACING (50s – 55s) ═══ -->
+      <div id="scene-tracing" class="clip" data-start="50" data-duration="5" data-track-index="0">
+        <span class="scene-label">DISTRIBUTED TRACING · JAEGER</span>
+        <div class="tracing-title" id="tracing-title">End-to-End Visibility</div>
+        <div class="jaeger-badge" id="jaeger-badge">🔍 Jaeger · localhost:16686</div>
+        <div class="trace-diagram" id="trace-diagram">
+          <div class="trace-span" id="tr-1"><span class="svc-name">API Gateway</span><div class="bar gateway">gateway.handle-request  320ms</div></div>
+          <div class="trace-span" id="tr-2"><span class="svc-name">Order Service</span><div class="bar order">order.create  280ms</div></div>
+          <div class="trace-span" id="tr-3"><span class="svc-name">Inventory</span><div class="bar inventory">inventory.reserve  85ms</div></div>
+          <div class="trace-span" id="tr-4"><span class="svc-name">Payment</span><div class="bar payment">payment.process  ✗ FAILED</div></div>
+          <div class="trace-span" id="tr-5"><span class="svc-name">Saga</span><div class="bar saga">saga.compensate  180ms</div></div>
+          <div class="trace-span" id="tr-6"><span class="svc-name">Notification</span><div class="bar notification">notify  45ms</div></div>
+        </div>
+        <div class="trace-visibility" id="trace-vis"><strong>Full end-to-end visibility</strong> across all 8 microservices</div>
+      </div>
+
+      <!-- ═══ SCENE 8: KEY METRICS (55s – 58s) ═══ -->
+      <div id="scene-metrics" class="clip" data-start="55" data-duration="3" data-track-index="0">
+        <span class="scene-label" style="color:rgba(255,255,255,0.5);">PROJECT METRICS</span>
+        <div class="metrics-title" id="metrics-title">Built at Scale</div>
+        <div class="metrics-row" id="metrics-row">
+          <div class="metric-card" id="metric-1">
+            <div class="metric-number blue" id="metric-num-1">8</div>
+            <div class="metric-label">Microservices</div>
+          </div>
+          <div class="metric-card" id="metric-2">
+            <div class="metric-number green" id="metric-num-2">161</div>
+            <div class="metric-label">Tests Passing</div>
+          </div>
+          <div class="metric-card" id="metric-3">
+            <div class="metric-number purple" id="metric-num-3">20K</div>
+            <div class="metric-label">Lines of Code</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SCENE 9: CALL TO ACTION (58s – 60s) ═══ -->
+      <div id="scene-cta" class="clip" data-start="58" data-duration="2" data-track-index="0">
+        <div class="grid-bg"></div>
+        <div class="cta-question" id="cta-question">Ready to build distributed<br/>systems right?</div>
+        <div class="cta-button" id="cta-btn">▶ Try it now</div>
+        <div class="cta-url" id="cta-url">github.com/ahsanmuslimm/Distributed-Order-Management-System</div>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ═══ SCENE 1: OPENING (0s – 5s) ═══ */
+      tl.fromTo("#open-badge", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.3);
+      tl.fromTo("#open-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.6);
+      tl.fromTo("#open-sub", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.2);
+      tl.fromTo(".glow-1", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 2, ease: "power1.out" }, 0);
+      tl.fromTo(".glow-2", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 2.5, ease: "power1.out" }, 0.5);
+
+      /* ═══ SCENE 2: CHECKOUT (5s – 18s) ═══ */
+      tl.fromTo("#prod-1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 5.3);
+      tl.fromTo("#prod-2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 5.6);
+      tl.fromTo("#prod-3", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 5.9);
+      tl.fromTo("#cart-bar", { y: 100 }, { y: 0, duration: 0.5, ease: "power2.out" }, 6.2);
+      // Add to cart animations
+      tl.to("#add-1", { backgroundColor: "#00aa44", duration: 0.3 }, 8);
+      tl.fromTo("#added-1", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 8.2);
+      tl.to("#cart-count", { innerText: "1", duration: 0.01 }, 8.2);
+      tl.to("#cart-total", { innerText: "$49.99", duration: 0.01 }, 8.2);
+      tl.to("#add-2", { backgroundColor: "#00aa44", duration: 0.3 }, 10);
+      tl.fromTo("#added-2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 10.2);
+      tl.to("#cart-count", { innerText: "2", duration: 0.01 }, 10.2);
+      tl.to("#cart-total", { innerText: "$79.98", duration: 0.01 }, 10.2);
+      tl.to("#add-3", { backgroundColor: "#00aa44", duration: 0.3 }, 12);
+      tl.fromTo("#added-3", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 12.2);
+      tl.to("#cart-count", { innerText: "3", duration: 0.01 }, 12.2);
+      tl.to("#cart-total", { innerText: "$279.97", duration: 0.01 }, 12.2);
+      // Highlight total
+      tl.fromTo("#cart-total", { scale: 1 }, { scale: 1.1, duration: 0.3, ease: "power2.out" }, 13);
+      tl.to("#cart-total", { scale: 1, duration: 0.3 }, 13.5);
+
+      /* ═══ SCENE 3: CONFIRMATION (18s – 27s) ═══ */
+      tl.fromTo("#confirm-card", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, 18.3);
+      tl.fromTo("#confirm-check", { scale: 0, rotation: -180 }, { scale: 1, rotation: 0, duration: 0.8, ease: "elastic.out(1, 0.5)" }, 19);
+      tl.fromTo("#confirm-title", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 19.8);
+      tl.fromTo("#order-id-box", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 20.5);
+
+      /* ═══ SCENE 4: TRACKING (27s – 35s) ═══ */
+      tl.fromTo("#tracking-title", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5 }, 27.3);
+      // Step 1: Received → complete
+      tl.to("#step-1", { borderColor: "#00aa44", backgroundColor: "rgba(0,170,68,0.15)", color: "#00dd55", duration: 0.4 }, 28);
+      tl.set("#step-1", { innerText: "✓" }, 28.2);
+      tl.to("#step-1-label", { color: "#00dd55", duration: 0.3 }, 28.2);
+      tl.to("#conn-1", { backgroundColor: "#00aa44", duration: 0.5 }, 28.5);
+      // Step 2: Inventory → complete
+      tl.to("#step-2", { borderColor: "#00aa44", backgroundColor: "rgba(0,170,68,0.15)", color: "#00dd55", duration: 0.4 }, 29.5);
+      tl.set("#step-2", { innerText: "✓" }, 29.7);
+      tl.to("#step-2-label", { color: "#00dd55", duration: 0.3 }, 29.7);
+      tl.to("#conn-2", { backgroundColor: "#00aa44", duration: 0.5 }, 30);
+      // Step 3: Payment → active (then will fail in next scene)
+      tl.to("#step-3", { borderColor: "#0066cc", backgroundColor: "rgba(0,102,204,0.15)", color: "#1a8cff", duration: 0.4 }, 31);
+      tl.to("#step-3-label", { color: "#1a8cff", duration: 0.3 }, 31.2);
+
+      /* ═══ SCENE 5: FAILURE (35s – 43s) ═══ */
+      tl.fromTo("#red-glow", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 1, ease: "power2.out" }, 35);
+      tl.fromTo("#fail-icon", { scale: 0, rotation: 90 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)" }, 35.5);
+      tl.fromTo("#fail-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 36.2);
+      tl.fromTo("#fail-sub", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 37);
+      // Compensation trigger appears
+      tl.fromTo("#comp-trigger", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power2.out" }, 39);
+      tl.fromTo("#comp-trigger .pulse", { scale: 1 }, { scale: 1.5, opacity: 0.5, duration: 0.8, repeat: 3, yoyo: true }, 39.5);
+
+      /* ═══ SCENE 6: COMPENSATION (43s – 50s) ═══ */
+      tl.fromTo("#green-glow", { scale: 0.3, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 1.5, ease: "power2.out" }, 43);
+      tl.fromTo("#comp-icon", { scale: 0 }, { scale: 1, duration: 0.8, ease: "elastic.out(1, 0.5)" }, 43.5);
+      tl.fromTo("#comp-title", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 44.3);
+      tl.fromTo("#comp-sub", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 45);
+      tl.fromTo("#comp-details", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 45.5);
+      tl.fromTo("#no-manual", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, 46.5);
+
+      /* ═══ SCENE 7: TRACING (50s – 55s) ═══ */
+      tl.fromTo("#tracing-title", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 50.2);
+      tl.fromTo("#jaeger-badge", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4 }, 50.5);
+      tl.fromTo("#tr-1", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 50.8);
+      tl.fromTo("#tr-2", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 51.1);
+      tl.fromTo("#tr-3", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 51.4);
+      tl.fromTo("#tr-4", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 51.7);
+      tl.fromTo("#tr-5", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 52.0);
+      tl.fromTo("#tr-6", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.3 }, 52.3);
+      tl.fromTo("#trace-vis", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 }, 53);
+
+      /* ═══ SCENE 8: METRICS (55s – 58s) ═══ */
+      tl.fromTo("#metrics-title", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4 }, 55.2);
+      tl.fromTo("#metric-1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 55.5);
+      tl.fromTo("#metric-2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 55.8);
+      tl.fromTo("#metric-3", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 56.1);
+
+      /* ═══ SCENE 9: CTA (58s – 60s) ═══ */
+      tl.fromTo("#cta-question", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 58.2);
+      tl.fromTo("#cta-btn", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.5)" }, 58.8);
+      tl.fromTo("#cta-url", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 59.2);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
