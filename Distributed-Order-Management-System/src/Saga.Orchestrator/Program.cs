@@ -53,6 +53,10 @@ try
         });
     });
 
+    // Crash injection for testing (disabled by default)
+    var crashState = new CrashInjectorState { Enabled = false, CrashPoint = "None" };
+    builder.Services.AddSingleton(crashState);
+
     // ========================================================================
     // Build
     // ========================================================================
@@ -107,8 +111,39 @@ try
         .WithName("ConfigureCrash")
         .WithOpenApi();
 
+    // ========================================================================
+    // Admin Endpoints (for testing only)
+    // ========================================================================
+
+    // Configure orchestrator crash for testing
+    app.MapPost("/admin/crash-config", async (HttpContext context, CrashInjectorState state) =>
+    {
+        try
+        {
+            var request = await context.Request.ReadFromJsonAsync<CrashConfigRequest>();
+            if (request == null)
+                return Results.BadRequest("Invalid request body");
+
+            state.Enabled = request.Enabled;
+            state.CrashPoint = request.CrashPoint ?? "None";
+            
+            Log.Information("Crash config updated: Enabled={Enabled}, CrashPoint={CrashPoint}", 
+                state.Enabled, state.CrashPoint);
+
+            return Results.Ok(new { status = "configured", crashPoint = state.CrashPoint, enabled = state.Enabled });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error configuring crash");
+            return Results.BadRequest(ex.Message);
+        }
+    })
+    .WithName("ConfigureCrash")
+    .WithOpenApi();
+
     Log.Information("Saga Orchestrator Service starting on {Url}", app.Urls.FirstOrDefault() ?? "unknown");
     await app.RunAsync();
+}
 }
 catch (Exception ex)
 {
@@ -141,4 +176,26 @@ async Task<IResult> HandleConfigureCrash()
 namespace Saga.Orchestrator
 {
     // Namespace for Program
+}
+
+// ========================================================================
+// Helper Classes for Admin Endpoints
+// ========================================================================
+
+/// <summary>
+/// State holder for crash injection configuration (testing only)
+/// </summary>
+public class CrashInjectorState
+{
+    public bool Enabled { get; set; }
+    public string CrashPoint { get; set; } = "None";
+}
+
+/// <summary>
+/// Request model for crash configuration
+/// </summary>
+public class CrashConfigRequest
+{
+    public string CrashPoint { get; set; }  // "InventoryReserve", "PaymentCharge", "Notification"
+    public bool Enabled { get; set; }
 }

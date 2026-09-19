@@ -29,9 +29,10 @@ builder.Services.AddScoped<ChargePaymentEndpoint>();
 builder.Services.AddScoped<RefundPaymentEndpoint>();
 
 // Failure injection for testing (set to 0.0 in production, higher in tests)
-builder.Services.AddScoped<IPaymentFailureInjector>(provider =>
-    new ConfigurablePaymentFailureInjector(failureRate: 0.0)  // 0% failure in production
-);
+// Use a singleton wrapper so we can reconfigure it via admin endpoint
+var failureInjectorWrapper = new MutablePaymentFailureInjector();
+builder.Services.AddSingleton<IPaymentFailureInjector>(failureInjectorWrapper);
+builder.Services.AddSingleton(failureInjectorWrapper);  // Also register the wrapper directly for admin access
 
 // API
 builder.Services.AddEndpointsApiExplorer();
@@ -94,7 +95,91 @@ ChargePaymentEndpoint.Map(app);
 RefundPaymentEndpoint.Map(app);
 
 // ========================================================================
+// Admin Endpoints (for testing only)
+// ========================================================================
+
+// Configure payment failure for testing
+app.MapPost("/admin/payment-failure", async (HttpContext context, MutablePaymentFailureInjector injector) =>
+{
+    try
+    {
+        var request = await context.Request.ReadFromJsonAsync<PaymentFailureConfigRequest>();
+        if (request == null)
+            return Results.BadRequest("Invalid request body");
+
+        injector.SetFailureRate(request.ErrorType switch
+        {
+            "Temporary" => 0.5,  // 50% temporary failure
+            "Permanent" => 1.0,  // 100% permanent failure
+            _ => 0.0             // Reset to no failure
+        });
+
+        return Results.Ok(new { status = "configured", failureRate = injector.GetFailureRate() });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.WithName("ConfigurePaymentFailure")
+.WithOpenApi();
+
+// ========================================================================
 // Run
 // ========================================================================
 
 app.Run();
+
+// ========================================================================
+// Helper Classes for Admin Endpoints
+// ========================================================================
+
+/// <summary>
+/// Mutable payment failure injector that can be reconfigured via admin endpoint
+/// </summary>
+public class MutablePaymentFailureInjector : IPaymentFailureInjector
+{
+    private double _failureRate = 0.0;
+    private readonly object _lockObj = new object();
+    private readonly Random _random = new Random();
+
+    public void SetFailureRate(double rate)
+    {
+        lock (_lockObj)
+        {
+            if (rate < 0.0 || rate > 1.0)
+                throw new ArgumentException("FailureRate must be between 0.0 and 1.0");
+            _failureRate = rate;
+        }
+    }
+
+    public double GetFailureRate()
+    {
+        lock (_lockObj)
+        {
+            return _failureRate;
+        }
+    }
+
+    public bool ShouldFail()
+    {
+        lock (_lockObj)
+        {
+            if (_failureRate == 0.0)
+                return false;
+            if (_failureRate == 1.0)
+                return true;
+            return _random.NextDouble() < _failureRate;
+        }
+    }
+}
+
+/// <summary>
+/// Request model for payment failure configuration
+/// </summary>
+public class PaymentFailureConfigRequest
+{
+    public string? ErrorType { get; set; } // "Temporary", "Permanent", or null to reset
+    public bool Enabled { get; set; }
+}
+
